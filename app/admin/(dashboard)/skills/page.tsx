@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
+import { AdminPageLoader } from "@/components/admin/admin-page-loader"
 import { useToast } from "@/hooks/use-toast"
 import { apiFetch } from "@/lib/api"
 import type { Skill } from "@/lib/types"
@@ -38,6 +39,7 @@ const categories = ["Frontend", "Backend", "Tools"]
 
 export default function SkillsPage() {
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = React.useState(true)
   const [skills, setSkills] = React.useState<Skill[]>([])
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editingSkillId, setEditingSkillId] = React.useState<number | null>(null)
@@ -48,8 +50,13 @@ export default function SkillsPage() {
   })
 
   const loadSkills = React.useCallback(async () => {
-    const response = await apiFetch<{ data: Skill[] }>("/admin/skills")
-    setSkills(response.data)
+    setIsLoading(true)
+    try {
+      const response = await apiFetch<{ data: Skill[] }>("/admin/skills")
+      setSkills(response.data)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   React.useEffect(() => {
@@ -160,6 +167,15 @@ export default function SkillsPage() {
     },
     {} as Record<string, typeof skills>
   )
+
+  if (isLoading) {
+    return (
+      <AdminPageLoader
+        title="Loading skills"
+        description="Fetching your technical skill set..."
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">

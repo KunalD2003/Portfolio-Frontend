@@ -22,17 +22,24 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { ProjectFormDialog } from "@/components/admin/project-form-dialog"
+import { AdminPageLoader } from "@/components/admin/admin-page-loader"
 import { useToast } from "@/hooks/use-toast"
 import { apiFetch } from "@/lib/api"
 import type { Project } from "@/lib/types"
 
 export default function ProjectsPage() {
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = React.useState(true)
   const [projects, setProjects] = React.useState<Project[]>([])
 
   const loadProjects = React.useCallback(async () => {
-    const response = await apiFetch<{ data: Project[] }>("/admin/projects")
-    setProjects(response.data)
+    setIsLoading(true)
+    try {
+      const response = await apiFetch<{ data: Project[] }>("/admin/projects")
+      setProjects(response.data)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   React.useEffect(() => {
@@ -91,6 +98,15 @@ export default function ProjectsPage() {
       title: "Project added",
       description: "The new project has been added to your portfolio.",
     })
+  }
+
+  if (isLoading) {
+    return (
+      <AdminPageLoader
+        title="Loading projects"
+        description="Bringing your project portfolio into view..."
+      />
+    )
   }
 
   return (

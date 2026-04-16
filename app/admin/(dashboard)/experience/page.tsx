@@ -23,16 +23,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { AdminPageLoader } from "@/components/admin/admin-page-loader"
 import { useToast } from "@/hooks/use-toast"
 import { apiFetch } from "@/lib/api"
 import type { Experience } from "@/lib/types"
 
 export default function ExperiencePage() {
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = React.useState(true)
   const [experiences, setExperiences] = React.useState<Experience[]>([])
   const loadExperiences = React.useCallback(async () => {
-    const response = await apiFetch<{ data: Experience[] }>("/admin/experience")
-    setExperiences(response.data)
+    setIsLoading(true)
+    try {
+      const response = await apiFetch<{ data: Experience[] }>("/admin/experience")
+      setExperiences(response.data)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   React.useEffect(() => {
@@ -168,6 +175,15 @@ export default function ExperiencePage() {
           variant: "destructive",
         })
       })
+  }
+
+  if (isLoading) {
+    return (
+      <AdminPageLoader
+        title="Loading experience"
+        description="Retrieving your work history entries..."
+      />
+    )
   }
 
   return (

@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { AdminPageLoader } from "@/components/admin/admin-page-loader"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { apiFetch } from "@/lib/api"
@@ -34,13 +35,19 @@ import type { Message } from "@/lib/types"
 
 export default function MessagesPage() {
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = React.useState(true)
   const [messages, setMessages] = React.useState<Message[]>([])
   const [selectedMessage, setSelectedMessage] = React.useState<Message | null>(null)
   const [dialogOpen, setDialogOpen] = React.useState(false)
 
   const loadMessages = React.useCallback(async () => {
-    const response = await apiFetch<{ data: Message[] }>("/admin/messages")
-    setMessages(response.data)
+    setIsLoading(true)
+    try {
+      const response = await apiFetch<{ data: Message[] }>("/admin/messages")
+      setMessages(response.data)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   React.useEffect(() => {
@@ -93,6 +100,15 @@ export default function MessagesPage() {
       body: { unread: false },
     }).catch(() => undefined)
     setMessages(messages.map((m) => (m.id === id ? { ...m, unread: false } : m)))
+  }
+
+  if (isLoading) {
+    return (
+      <AdminPageLoader
+        title="Loading messages"
+        description="Fetching recent contact submissions..."
+      />
+    )
   }
 
   return (

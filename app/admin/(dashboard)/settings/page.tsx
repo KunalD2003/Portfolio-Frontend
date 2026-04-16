@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
+import { AdminPageLoader } from "@/components/admin/admin-page-loader"
 import { useToast } from "@/hooks/use-toast"
 import { apiFetch } from "@/lib/api"
 import type { NotificationSettings, Profile } from "@/lib/types"
@@ -16,6 +17,7 @@ import type { NotificationSettings, Profile } from "@/lib/types"
 export default function SettingsPage() {
   const { toast } = useToast()
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
   const [isUploadingImage, setIsUploadingImage] = React.useState(false)
   const [profile, setProfile] = React.useState<Profile>({
     name: "Kunal Deshmukh",
@@ -48,6 +50,7 @@ export default function SettingsPage() {
   })
 
   React.useEffect(() => {
+    setIsLoading(true)
     apiFetch<{ data: { profile: Profile; notifications: NotificationSettings } }>(
       "/admin/settings"
     )
@@ -62,6 +65,7 @@ export default function SettingsPage() {
           variant: "destructive",
         })
       })
+      .finally(() => setIsLoading(false))
   }, [toast])
 
   const handleSave = async () => {
@@ -106,6 +110,15 @@ export default function SettingsPage() {
       setIsUploadingImage(false)
       event.target.value = ""
     }
+  }
+
+  if (isLoading) {
+    return (
+      <AdminPageLoader
+        title="Loading settings"
+        description="Getting your profile and preferences ready..."
+      />
+    )
   }
 
   return (

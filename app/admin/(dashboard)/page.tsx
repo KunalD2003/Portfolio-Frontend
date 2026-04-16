@@ -3,12 +3,14 @@
 import * as React from "react"
 import { FolderKanban, Sparkles, Briefcase, Mail, Eye, Clock } from "lucide-react"
 import { StatsCard } from "@/components/admin/stats-card"
+import { AdminPageLoader } from "@/components/admin/admin-page-loader"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { apiFetch } from "@/lib/api"
 import type { Message } from "@/lib/types"
 
 export default function AdminDashboardPage() {
+  const [isLoading, setIsLoading] = React.useState(true)
   const [dashboard, setDashboard] = React.useState<{
     stats: {
       projects: number
@@ -28,13 +30,24 @@ export default function AdminDashboardPage() {
   } | null>(null)
 
   React.useEffect(() => {
+    setIsLoading(true)
     apiFetch<{ data: NonNullable<typeof dashboard> }>("/admin/dashboard")
       .then((response) => setDashboard(response.data))
       .catch(() => setDashboard(null))
+      .finally(() => setIsLoading(false))
   }, [])
 
   const recentActivity = dashboard?.recentActivity || []
   const recentMessages = dashboard?.recentMessages || []
+
+  if (isLoading) {
+    return (
+      <AdminPageLoader
+        title="Loading dashboard"
+        description="Preparing your portfolio overview..."
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
